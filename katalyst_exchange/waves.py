@@ -1,15 +1,14 @@
+import logging
+
 import re
 
 import base58
 import pywaves
 import requests
 
-import katalyst_exchange
 from katalyst_exchange.config import WAVES_WALLET_ADDRESS, WAVES_WALLET_PRIVATE_KEY, WAVESNODES_URL_PATTERN
-from katalyst_exchange.ethereum import PLATFORM_ETHEREUM
+from katalyst_exchange import PLATFORM_ETHEREUM, PLATFORM_WAVES
 from katalyst_exchange.models import ExchangeTx
-
-PLATFORM_WAVES = 'waves'
 
 
 def send_waves_tx(tx):
@@ -24,7 +23,7 @@ def send_waves_tx(tx):
     my_address = pywaves.Address(WAVES_WALLET_ADDRESS, privateKey=WAVES_WALLET_PRIVATE_KEY)
     response = my_address.sendWaves(recipient=pywaves.Address(tx.outcome_address), amount=tx.outcome_amount)
 
-    katalyst_exchange.data_loading_log.debug('Waves response: %s', response)
+    logging.getLogger('data_loading').debug('Waves response: %s', response)
 
     return response['id']
 
@@ -39,7 +38,7 @@ def get_waves_txs(address):
             WAVESNODES_URL_PATTERN.format(address=address),
             timeout=30).json()
     except Exception as e:
-        katalyst_exchange.data_loading_log.exception('Failed get data "%s"', e, exc_info=False)
+        logging.getLogger('data_loading').exception('Failed get data "%s"', e, exc_info=False)
         return []
 
     for obj in resp[0]:

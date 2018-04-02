@@ -1,4 +1,6 @@
 import binascii
+import logging
+
 import re
 
 import codecs
@@ -6,12 +8,9 @@ import requests
 
 from jsonrpcclient import HTTPClient
 
-import katalyst_exchange
-from katalyst_exchange.config import ETHEREUM_WALLET_ADDRESS, ETHERSCAN_API_KEY, ETHERSCAN_URL_PATTERN
+from katalyst_exchange import PLATFORM_ETHEREUM, PLATFORM_WAVES
 from katalyst_exchange.models import ExchangeTx
-from katalyst_exchange.waves import PLATFORM_WAVES
-
-PLATFORM_ETHEREUM = 'ethereum'
+from katalyst_exchange.config import ETHEREUM_WALLET_ADDRESS, ETHERSCAN_API_KEY, ETHERSCAN_URL_PATTERN
 
 
 def send_ethereum_tx(tx):
@@ -32,7 +31,7 @@ def send_ethereum_tx(tx):
         'data': '0x' + binascii.hexlify(b'Exchange transaction').decode()
     }])
 
-    katalyst_exchange.data_loading_log.debug('geth response: %s', response)
+    logging.getLogger('data_loading').debug('geth response: %s', response)
 
     return response
 
@@ -45,7 +44,7 @@ def get_ethereum_txs(address):
     try:
         resp = requests.get(ETHERSCAN_URL_PATTERN.format(address=address, api_key=ETHERSCAN_API_KEY), timeout=30).json()
     except Exception as e:
-        katalyst_exchange.data_loading_log.exception('Failed get data "%s"', e, exc_info=False)
+        logging.getLogger('data_loading').exception('Failed get data "%s"', e, exc_info=False)
         return []
 
     for obj in resp['result']:

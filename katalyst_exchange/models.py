@@ -1,9 +1,8 @@
 from sqlalchemy import Column, Integer, String, DateTime, func, Float, Text, desc
 from sqlalchemy.ext.declarative import declarative_base
 
-from katalyst_exchange import session
-from katalyst_exchange.ethereum import PLATFORM_ETHEREUM
-from katalyst_exchange.waves import PLATFORM_WAVES
+from katalyst_exchange import session, engine
+from katalyst_exchange import PLATFORM_ETHEREUM, PLATFORM_WAVES
 
 Base = declarative_base()
 
@@ -93,3 +92,6 @@ def get_actual_exchange_rate(platform):
         .order_by(desc(ExchangeRate.id)) \
         .group_by(ExchangeRate.platform) \
         .one()
+
+
+Base.metadata.create_all(engine)
