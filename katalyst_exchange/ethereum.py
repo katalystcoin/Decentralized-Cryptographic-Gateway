@@ -1,5 +1,6 @@
 import binascii
 import logging
+import os
 
 import re
 
@@ -10,10 +11,9 @@ from jsonrpcclient import HTTPClient
 
 from katalyst_exchange import PLATFORM_ETHEREUM, PLATFORM_WAVES
 from katalyst_exchange.models import ExchangeTx
-from katalyst_exchange.config import ETHEREUM_WALLET_ADDRESS, ETHERSCAN_API_KEY, ETHERSCAN_URL_PATTERN
 
 
-def send_ethereum_tx(tx):
+def send_ethereum_tx(tx, from_address):
     """
 
     :param tx: Обменная транзакция
@@ -21,9 +21,9 @@ def send_ethereum_tx(tx):
     :return: Transaction hash
     :rtype: str
     """
-    client = HTTPClient('http://127.0.0.1:8545')
+    client = HTTPClient(os.getenv('ETHEREUM_NODE_URL'))
     response = client.request('eth_sendTransaction', [{
-        'from': ETHEREUM_WALLET_ADDRESS,
+        'from': from_address,
         'to': tx.outcome_address,  # в транзакции адрес хранится с префиксом
         'gas': '0x76c0',
         'gasPrice': '0x9184e72a000',
@@ -42,7 +42,8 @@ def get_ethereum_txs(address):
     :rtype: list(ExchangeTx)
     """
     try:
-        resp = requests.get(ETHERSCAN_URL_PATTERN.format(address=address, api_key=ETHERSCAN_API_KEY), timeout=30).json()
+        resp = requests.get(os.getenv('ETHERSCAN_URL_PATTERN')
+                            .format(address=address, api_key=os.getenv('ETHERSCAN_API_KEY')), timeout=30).json()
     except Exception as e:
         logging.getLogger('data_loading').exception('Failed get data "%s"', e, exc_info=False)
         return []

@@ -1,4 +1,5 @@
 import logging
+import os
 
 import re
 
@@ -6,12 +7,11 @@ import base58
 import pywaves
 import requests
 
-from katalyst_exchange.config import WAVES_WALLET_ADDRESS, WAVES_WALLET_PRIVATE_KEY, WAVESNODES_URL_PATTERN
 from katalyst_exchange import PLATFORM_ETHEREUM, PLATFORM_WAVES
 from katalyst_exchange.models import ExchangeTx
 
 
-def send_waves_tx(tx):
+def send_waves_tx(tx, from_address, from_address_private_key):
     """
 
     :param tx: Обменная транзакция
@@ -19,9 +19,10 @@ def send_waves_tx(tx):
     :return: Transaction hash
     :rtype: str
     """
-    pywaves.setNode(node='http://127.0.0.1:6869', chain='testnet')
-    my_address = pywaves.Address(WAVES_WALLET_ADDRESS, privateKey=WAVES_WALLET_PRIVATE_KEY)
-    response = my_address.sendWaves(recipient=pywaves.Address(tx.outcome_address), amount=tx.outcome_amount)
+    pywaves.setNode(node=os.getenv('WAVES_NODE_URL'), chain='testnet')
+    my_address = pywaves.Address(from_address, privateKey=from_address_private_key)
+    response = my_address.sendWaves(recipient=pywaves.Address(tx.outcome_address), amount=tx.outcome_amount,
+                                    attachment='Exchange transaction')
 
     logging.getLogger('data_loading').debug('Waves response: %s', response)
 
@@ -34,9 +35,7 @@ def get_waves_txs(address):
     :rtype: list(ExchangeTx)
     """
     try:
-        resp = requests.get(
-            WAVESNODES_URL_PATTERN.format(address=address),
-            timeout=30).json()
+        resp = requests.get(os.getenv('WAVESNODES_URL_PATTERN').format(address=address), timeout=30).json()
     except Exception as e:
         logging.getLogger('data_loading').exception('Failed get data "%s"', e, exc_info=False)
         return []

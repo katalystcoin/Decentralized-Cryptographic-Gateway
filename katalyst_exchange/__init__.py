@@ -15,6 +15,3 @@ session = Session()
 
 PLATFORM_ETHEREUM = 'ethereum'
 PLATFORM_WAVES = 'waves'
-
-
-print(123)
