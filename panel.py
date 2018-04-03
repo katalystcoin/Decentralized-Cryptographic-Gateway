@@ -1,3 +1,5 @@
+import math
+
 import os
 from flask import Flask, render_template_string, request, redirect
 from sqlalchemy import desc
@@ -48,6 +50,12 @@ TX_TEMPLATE = """
         </table>
         
         <h4>Processed txs</h4>
+        <div>
+            Pages: 
+            {% for p in range(pages_count) %}
+                {% if loop.index == current_page %}{{ loop.index }}{% else %}<a href="/?p={{ loop.index }}">{{ loop.index }}</a>{% endif %}{% if loop.index < pages_count %}, {% endif %}
+            {% endfor %}
+        </div>
         <table class="table">
             <thead>
                 <tr>
@@ -56,6 +64,7 @@ TX_TEMPLATE = """
                     <th scope="col" colspan="5">Income</th>
                     <th scope="col" colspan="4">Outcome</th>
                     <th scope="col" rowspan="2">Status</th>
+                    <th scope="col" rowspan="2">Status data</th>
                 </tr>
                 <tr>
                     <th scope="col">Tx ID</th>
@@ -89,10 +98,17 @@ TX_TEMPLATE = """
                         <td>{{ tx.outcome_exchange_rate }}</td>
                         
                         <td>{{ tx.status }}</td>
+                        <td>{{ tx.status_data }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
+        <div>
+            Pages: 
+            {% for p in range(pages_count) %}
+                {% if loop.index == current_page %}{{ loop.index }}{% else %}<a href="/?p={{ loop.index }}">{{ loop.index }}</a>{% endif %}{% if loop.index < pages_count %}, {% endif %}
+            {% endfor %}
+        </div>
     </body>
 </html>
 """
@@ -100,9 +116,16 @@ TX_TEMPLATE = """
 
 @app.route('/')
 def txs():
-    txs = session.query(ExchangeTx).order_by(desc(ExchangeTx.id)).all()
+    page = request.args.get('p', 1, int)
+    txs_q = session.query(ExchangeTx).order_by(desc(ExchangeTx.id))
     last_txs = session.query(LastSeenTransaction).order_by(desc(LastSeenTransaction.id)).limit(5).all()
-    return render_template_string(TX_TEMPLATE, txs=txs, last_txs=last_txs)
+    txs_count = txs_q.count()
+    return render_template_string(TX_TEMPLATE,
+                                  txs=txs_q.offset((page - 1) * 20).limit(20).all(),
+                                  txs_count=txs_count,
+                                  pages_count=math.ceil(txs_count / 20),
+                                  current_page=page,
+                                  last_txs=last_txs)
 
 
 RATES_TEMPLATE = """
@@ -175,4 +198,4 @@ def rates():
 
 
 if __name__ == "__main__":
-    app.run(debug=os.getenv('DEBUG', False))
+    app.run()
