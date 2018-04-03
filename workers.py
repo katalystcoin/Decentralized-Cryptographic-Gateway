@@ -3,7 +3,7 @@ import os
 
 if __name__ == '__main__':
 
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
     tx_processing_log = logging.getLogger('tx_processing')
     tx_processing_log_fh = logging.FileHandler('tx_processing.log')

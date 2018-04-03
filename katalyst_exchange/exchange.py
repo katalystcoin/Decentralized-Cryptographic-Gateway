@@ -1,5 +1,6 @@
 import logging
 import os
+from sqlalchemy.orm.exc import NoResultFound
 
 from katalyst_exchange import session, PLATFORM_ETHEREUM, PLATFORM_WAVES
 from katalyst_exchange.ethereum import send_ethereum_tx
@@ -18,24 +19,31 @@ def exchange_txs():
 
         logging.getLogger('tx_processing').info('Working with %s', tx)
 
-        # курс обмена для "входящей" валюты
-        income_exchange_rate = get_actual_exchange_rate(tx.income_platform).value
-
-        # курс обмена для "исходящей" валюты
-        outcome_exchange_rate = get_actual_exchange_rate(tx.outcome_platform).value
-
-        # вдруг мы не смогли получить курсы обмена
-        if income_exchange_rate is None or outcome_exchange_rate is None:
-            missed_platform_name = tx.income_platform if income_exchange_rate is None else tx.outcome_platform
-            logging.getLogger('tx_processing').critical('Missed exchange rate for %s', missed_platform_name)
+        # курс обмена для "входящей" и "исходящей" валюты
+        try:
+            income_exchange_rate = get_actual_exchange_rate(tx.income_platform).value
+            outcome_exchange_rate = get_actual_exchange_rate(tx.outcome_platform).value
+        except NoResultFound:  # вдруг мы не смогли получить курсы обмена
+            logging.getLogger('tx_processing').critical('Missed exchange rate for one of platforms %s',
+                                                        [tx.income_platform, tx.outcome_platform])
+            continue
 
         tx.income_exchange_rate = income_exchange_rate
         tx.outcome_exchange_rate = outcome_exchange_rate
-        tx.outcome_amount = tx.income_amount * income_exchange_rate / outcome_exchange_rate
+        tx.outcome_amount = int(tx.income_amount * income_exchange_rate / outcome_exchange_rate)
+
+        logging.getLogger('tx_processing').debug('Calculating outcome amount %s', {
+            'income_amount': tx.income_amount,
+            'income_exchange_rate': income_exchange_rate,
+            'outcome_exchange_rate': outcome_exchange_rate
+        })
 
         # отправляем ответный перевод
         try:
             logging.getLogger('tx_processing').info('Creating exchange transaction')
+            logging.getLogger('tx_processing').debug('Tx %s', tx)
+            logging.getLogger('tx_processing').debug('Tx %s', os.getenv('WAVES_WALLET_ADDRESS'))
+            logging.getLogger('tx_processing').debug('Tx %s', os.getenv('WAVES_WALLET_PRIVATE_KEY'))
 
             if tx.outcome_platform == PLATFORM_ETHEREUM:
                 outcome_tx_id = send_ethereum_tx(tx, os.getenv('ETHEREUM_WALLET_ADDRESS'))
@@ -49,7 +57,7 @@ def exchange_txs():
             tx.status = ExchangeTx.STATUS_FAILED
             tx.status_data = str(e)
 
-            logging.getLogger('tx_processing').exception('Failed to create exchange transaction %s', str(e),
+            logging.getLogger('tx_processing').exception('Failed to create exchange transaction "%s"', str(e),
                                                          exc_info=False)
         else:
             # если мы не проверяем состояние транзакции в будущем, то помечаем её как успешную

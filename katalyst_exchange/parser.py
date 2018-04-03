@@ -16,7 +16,7 @@ def load_txs(fnc, address):
     last_tx_id = session.query(LastSeenTransaction.tx_id) \
         .filter(LastSeenTransaction.address == address) \
         .order_by(desc(LastSeenTransaction.id)) \
-        .group_by(LastSeenTransaction.address) \
+        .limit(1)\
         .scalar()
 
     logging.getLogger('data_loading').debug('Last seen transaction id "%s"', last_tx_id)
@@ -30,6 +30,7 @@ def load_txs(fnc, address):
         tx_id = tx.income_tx_id if isinstance(tx, ExchangeTx) else tx
 
         logging.getLogger('data_loading').info('Processing tx "%s"', tx_id)
+        logging.getLogger('data_loading').debug('Raw tx %s', tx)
 
         # если первая полученная транзакция у нас сохранена, как последняя выполненная, значит нового ничего нету
         if tx_id == last_tx_id:

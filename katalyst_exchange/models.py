@@ -56,13 +56,13 @@ class ExchangeTx(Base):
 
     income_tx_id = Column(String(80), comment='Income transaction ID')
     income_address = Column(String(80), comment='Sender address')
-    income_amount = Column(Float, comment='Income amount')
+    income_amount = Column(Integer, comment='Income amount')
     income_platform = Column(String(20), comment='Platform where sender walled located')
     income_exchange_rate = Column(Float, nullable=True, comment='Exchange rate to base currency (buying)')
 
     outcome_tx_id = Column(String(80), nullable=True, comment='Outcome transaction ID')
     outcome_address = Column(String(80), comment='Receiver address')
-    outcome_amount = Column(Float, nullable=True, comment='Outcome amount')
+    outcome_amount = Column(Integer, nullable=True, comment='Outcome amount')
     outcome_platform = Column(String(20), comment='Platform where receiver walled located')
     outcome_exchange_rate = Column(Float, nullable=True, comment='Exchange rate to base currency (selling)')
 
@@ -73,9 +73,17 @@ class ExchangeTx(Base):
     updated_at = Column(DateTime, server_onupdate=func.now())
 
     def __repr__(self):
-        return "<ExchangeTx(income_address='%s', outcome_address='%s', status='%s')>" % (self.income_address,
-                                                                                         self.outcome_address,
-                                                                                         self.status)
+        return "<ExchangeTx(id='%s', " \
+               "income_address='%s', " \
+               "outcome_address='%s', " \
+               "income_amount='%s', " \
+               "outcome_amount='%s', " \
+               "status='%s')>" % (self.id,
+                                  self.income_address,
+                                  self.outcome_address,
+                                  self.income_amount,
+                                  self.outcome_amount,
+                                  self.status)
 
 
 def get_actual_exchange_rate(platform):
@@ -90,7 +98,7 @@ def get_actual_exchange_rate(platform):
 
     return session.query(ExchangeRate).filter(ExchangeRate.platform == platform) \
         .order_by(desc(ExchangeRate.id)) \
-        .group_by(ExchangeRate.platform) \
+        .limit(1) \
         .one()
 
 
