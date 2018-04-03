@@ -1,7 +1,6 @@
 import os
-
-from flask import Flask, render_template, render_template_string, request, redirect
-from sqlalchemy import asc, desc
+from flask import Flask, render_template_string, request, redirect
+from sqlalchemy import desc
 
 from katalyst_exchange import session
 from katalyst_exchange.models import ExchangeTx, ExchangeRate, LastSeenTransaction
