@@ -13,6 +13,8 @@ if __name__ == '__main__':
     data_loading_log_fh = logging.FileHandler('data_loading.log')
     data_loading_log.addHandler(data_loading_log_fh)
 
+    logging.info('Starting')
+
     from katalyst_exchange.exchange import exchange_txs
     from katalyst_exchange.parser import load_txs
     from katalyst_exchange.waves import get_waves_txs
@@ -24,3 +26,5 @@ if __name__ == '__main__':
 
     # производим обмен
     exchange_txs()
+
+    logging.info('Finished')
