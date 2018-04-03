@@ -13,11 +13,13 @@ from katalyst_exchange.models import ExchangeTx
 
 def send_waves_tx(tx, from_address, from_address_private_key):
     """
-    Отправка транзакции в блокчейн.
-    :param tx: Обменная транзакция
+    Sending transaction to the blockchain.
+    :param tx: Exchange transaction
     :type tx: ExchangeTx
-    :param from_address: С какого адреса отправляем
-    :param from_address_private_key: Приватный ключ, с адреса которого отправляем
+    :param from_address: The address from which it we send
+    :type from_address: str
+    :param from_address_private_key: Private key for sender wallet (must be in Waves node configuration)
+    :type from_address_private_key: str
     :return: Transaction hash
     :rtype: str
     """
@@ -27,14 +29,15 @@ def send_waves_tx(tx, from_address, from_address_private_key):
     my_address = pywaves.Address(from_address, privateKey=from_address_private_key)
     response = my_address.sendWaves(recipient=pywaves.Address(tx.outcome_address), amount=int(tx.outcome_amount))
 
-    logging.getLogger('data_loading').debug('Waves response: %s', response)
+    logging.getLogger('data_loading').info('Tx sent successfully')
+    logging.getLogger('data_loading').debug('Node response dump: %s', response)
 
     return response['id']
 
 
 def get_waves_txs(address):
     """
-    Получение списка последних транзакций из Waves.
+    Get the list of recent transactions from Waves. Here we use third party service wavesnode.net.
     :rtype: list(ExchangeTx)
     """
     logging.getLogger('data_loading').info('Trying to get Waves txs')
@@ -42,16 +45,16 @@ def get_waves_txs(address):
     try:
         resp = requests.get(os.getenv('WAVESNODES_URL_PATTERN').format(address=address), timeout=30).json()
     except Exception as e:
-        logging.getLogger('data_loading').exception('Failed get data "%s"', e, exc_info=False)
+        logging.getLogger('data_loading').exception('Failed get txs data: %s', e, exc_info=False)
         return []
 
     for obj in resp[0]:
 
-        logging.debug('Parsed result %s', obj)
+        logging.debug('Result item dump: %s', obj)
 
         in_tx_id = obj['id']
 
-        # если тип транзакции не тот, то скипаем
+        # we are interesting only in 4 type
         if obj['type'] != 4:
             yield in_tx_id
             continue
@@ -60,8 +63,8 @@ def get_waves_txs(address):
 
         assert type(out_address) is str
 
-        # валидируем ethereum адрес, если получатель некорректно укзан, то скипаем
-        p = re.compile(r'^0x[a-fA-F0-9]{40}$')  # 0x81b7e08f65bdf5648606c89998a9cc8164397647
+        # we must validate receiver address and skip transaction aggregation if it is invalid
+        p = re.compile(r'^0x[a-fA-F0-9]{40}$')  # data example: 0x81b7e08f65bdf5648606c89998a9cc8164397647
         if not p.match(out_address):
             yield in_tx_id
             continue

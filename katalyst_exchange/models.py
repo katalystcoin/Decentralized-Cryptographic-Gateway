@@ -9,7 +9,7 @@ Base = declarative_base()
 
 class LastSeenTransaction(Base):
     """
-    Сущность последней обработанной транзакции из блокчейна.
+    Last seen transaction from blockchain.
     """
     __tablename__ = 'last_seen_transactions'
     id = Column(Integer, primary_key=True)
@@ -25,7 +25,7 @@ class LastSeenTransaction(Base):
 
 class ExchangeRate(Base):
     """
-    Курс обмена валюты по отношению к базовой.
+    Exchange rate.
     """
     __tablename__ = 'exchange_rates'
     id = Column(Integer, primary_key=True)
@@ -42,7 +42,7 @@ class ExchangeRate(Base):
 
 class ExchangeTx(Base):
     """
-    Обменная транзакция
+    Exchange transaction.
     """
     STATUS_NEW = 'new'
     STATUS_AWAITING_PROCESSING = 'awaiting_processing'
@@ -88,11 +88,11 @@ class ExchangeTx(Base):
 
 def get_actual_exchange_rate(platform):
     """
-    Получение актуального курса обмена для запрошенной платформы.
-    :param platform: Название платформы
+    Actual exchange rate for platform.
+    :param platform: Platform name
     :type platform: str
-    :return:
-    :rtype: katalyst_exchange.models.ExchangeRate
+    :return: Actual exchange rate
+    :rtype: ExchangeRate
     """
     assert platform in [PLATFORM_WAVES, PLATFORM_ETHEREUM]
 

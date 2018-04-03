@@ -15,18 +15,14 @@ if __name__ == '__main__':
     data_loading_log_fh.setFormatter(logging.Formatter(os.getenv('LOG_DATA_LOADING_FORMAT')))
     data_loading_log.addHandler(data_loading_log_fh)
 
-    logging.info('Starting')
-
     from katalyst_exchange.exchange import exchange_txs
     from katalyst_exchange.parser import load_txs
     from katalyst_exchange.waves import get_waves_txs
     from katalyst_exchange.ethereum import get_ethereum_txs
 
-    # пытаемся получить нужные данные
+    # get transactions data
     load_txs(get_ethereum_txs, os.getenv('ETHEREUM_WALLET_ADDRESS'))
     load_txs(get_waves_txs, os.getenv('WAVES_WALLET_ADDRESS'))
 
-    # производим обмен
+    # exchange
     exchange_txs()
-
-    logging.info('Finished')
