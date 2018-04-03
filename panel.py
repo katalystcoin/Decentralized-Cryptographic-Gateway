@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask, render_template, render_template_string, request, redirect
 from sqlalchemy import asc, desc
 
@@ -174,4 +176,4 @@ def rates():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=os.getenv('DEBUG', False))
