@@ -9,6 +9,7 @@ Service
 ```ini
 [Unit]
 Description="Katalyst exchange worker"
+
 After=network.target
 
 [Service]
@@ -59,10 +60,39 @@ Timer
 [Unit]
 Description=Timer for Katalyst exchange worker
 
+After=network.target
+
 [Timer]
 Unit=katalyst-exchange-worker.service
 OnBootSec=1min
 OnUnitActiveSec=1min
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Panel
+
+```
+[Unit]
+Description=Katalyst exchange worker management panel
+
+After=network.target
+
+[Service]
+User=user
+Group=group
+
+WorkingDirectory=/opt/katalyst-exchange-worker
+
+# Virtualenv
+Environment="PATH=/opt/katalyst-exchange-worker/venv/bin"
+
+# Database
+Environment="DATABASE_URL=postgresql://user:password@localhost/database"
+
+ExecStart=/opt/katalyst-exchange-worker/venv/bin/python panel.py
+Restart=always
 
 [Install]
 WantedBy=multi-user.target

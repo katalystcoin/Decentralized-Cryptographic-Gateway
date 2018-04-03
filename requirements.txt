@@ -12,3 +12,5 @@ PyWaves==0.8.4
 requests==2.18.4
 SQLAlchemy==1.2.5
 urllib3==1.22
+Flask==0.12.2
+gunicorn==19.7.1
