@@ -37,6 +37,7 @@ TX_TEMPLATE = """
                 <tr>
                     <th scope="col">Tx ID</th>
                     <th scope="col">Address</th>
+                    <th scope="col">Date</th>
                 </tr>
             </thead>
             <tbody>
@@ -44,6 +45,7 @@ TX_TEMPLATE = """
                     <tr>
                         <td>{{ tx.tx_id }}</td>
                         <td>{{ tx.address }}</td>
+                        <td>{{ tx.created_at }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
