@@ -2,6 +2,8 @@
 
 ## Configuration
 
+At first start database structure will be created automatically.
+
 Service
 
 ```ini
@@ -20,10 +22,16 @@ WorkingDirectory=/opt/katalyst-exchange-worker
 # Virtualenv
 Environment="PATH=/opt/katalyst-exchange-worker/venv/bin"
 
-# Configuration
-
 # Database
 Environment="DATABASE_URL=postgresql://user:password@localhost/database"
+
+# Logging
+Environment="LOG_LEVEL=DEBUG"
+Environment="LOG_GLOBAL_FORMAT=%(asctime)s %(levelname)s %(message)s"
+Environment="LOG_TX_PROCESSING_FILE=/var/log/katalyst-exchange-worker/txprocessing.log"
+Environment="LOG_TX_PROCESSING_FORMAT=%(asctime)s %(levelname)s %(message)s"
+Environment="LOG_DATA_LOADING_FILE=/var/log/katalyst-exchange-worker/dataloading.log"
+Environment="LOG_DATA_LOADING_FORMAT=%(asctime)s %(levelname)s %(message)s"
 
 # Ethereum
 Environment="ETHEREUM_WALLET_ADDRESS="

@@ -3,14 +3,16 @@ import os
 
 if __name__ == '__main__':
 
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
+    logging.basicConfig(level=os.getenv('LOG_LEVEL'), format=os.getenv('LOG_GLOBAL_FORMAT'))
 
     tx_processing_log = logging.getLogger('tx_processing')
-    tx_processing_log_fh = logging.FileHandler('tx_processing.log')
+    tx_processing_log_fh = logging.FileHandler(os.getenv('LOG_TX_PROCESSING_FILE'))
+    tx_processing_log_fh.setFormatter(logging.Formatter(os.getenv('LOG_TX_PROCESSING_FORMAT')))
     tx_processing_log.addHandler(tx_processing_log_fh)
 
     data_loading_log = logging.getLogger('data_loading')
-    data_loading_log_fh = logging.FileHandler('data_loading.log')
+    data_loading_log_fh = logging.FileHandler(os.getenv('LOG_DATA_LOADING_FILE'))
+    data_loading_log_fh.setFormatter(logging.Formatter(os.getenv('LOG_DATA_LOADING_FORMAT')))
     data_loading_log.addHandler(data_loading_log_fh)
 
     logging.info('Starting')
