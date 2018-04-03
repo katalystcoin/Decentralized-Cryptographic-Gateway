@@ -1,10 +1,19 @@
 # Katalyst exchange
 
+
 ## Configuration
 
-At first start database structure will be created automatically.
+Main worker and management panel are working as `systemd` services. At first start database structure will be created automatically.
 
-Service
+
+### Requirements
+
+All requirements listed in `requirements.txt` file. It is recommended to use VirtualEnv.
+
+
+### Systemd services
+
+Main worker service
 
 ```ini
 [Unit]
@@ -54,7 +63,7 @@ KillMode=process
 WantedBy=multi-user.target
 ```
 
-Timer
+Main worker timer
 
 ```ini
 [Unit]
@@ -71,7 +80,7 @@ OnUnitActiveSec=1min
 WantedBy=multi-user.target
 ```
 
-Panel
+Management panel
 
 ```
 [Unit]
@@ -91,7 +100,7 @@ Environment="PATH=/opt/katalyst-exchange-worker/venv/bin"
 # Database
 Environment="DATABASE_URL=postgresql://user:password@localhost/database"
 
-ExecStart=/opt/katalyst-exchange-worker/venv/bin/python panel.py
+ExecStart=/opt/katalyst-exchange-worker/venv/bin/gunicorn --bind 0.0.0.0:5000 wsgi:app
 Restart=always
 
 [Install]
